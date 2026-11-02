@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Official Club Dev Color Palette */
+:root {
+  --color-primary: #1A73E8;        /* Professional blue - trust, technology */
+  --color-secondary: #0D47A1;       /* Deep authority blue - for admins */
+  --color-accent: #64B5F6;          /* Secondary action blue */
+  --color-background-light: #F5F7FA; /* Visual rest background */
+  --color-background-dark: #0F172A;  /* Modern dashboard dark */
+  --color-text-primary: #1E293B;    /* Maximum readability */
+  --color-text-secondary: #64748B;  /* Secondary information */
+  --color-success: #27AE60;        /* Success actions */
+  --color-warning: #F59E0B;        /* Warning states */
+  --color-danger: #DC2626;         /* Danger/error actions */
+  --color-info: #3498DB;           /* Information */
+  --color-input-border: #CBD5E1;    /* Input borders */
+  --color-card-bg: #FFFFFF;        /* Card backgrounds */
+  --color-table-header: #F1F5F9;    /* Table header backgrounds */
+  --color-table-hover: #E0F2FE;     /* Table row hover */
+}
+
+/* Global no-underline styles - Remove all underlines from links */
+a, a:hover, a:focus, a:active,
+.Link, .Link:hover, .Link:focus, .Link:active,
+.NavLink, .NavLink:hover, .NavLink:focus, .NavLink:active,
+button, button:hover, button:focus, button:active {
+  text-decoration: none !important;
+}
+
+/* Force no underline globally */
+a {
+  text-decoration: none !important;
+}
+
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--color-text-primary);
+  background-color: var(--color-background-light);
+}
+
+/* Custom components */
+@layer components {
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 transition-all duration-200 no-underline hover:no-underline focus:no-underline;
+  }
+  
+  .card-hover {
+    @apply card hover:shadow-md hover:border-gray-300;
+  }
+  
+  .btn-primary {
+    @apply bg-[--color-primary] hover:bg-[--color-secondary] text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[--color-primary] no-underline hover:no-underline focus:no-underline;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2.5 px-5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 no-underline hover:no-underline focus:no-underline;
+  }
+  
+  .btn-outline {
+    @apply border border-[--color-primary] text-[--color-primary] hover:bg-[--color-primary] hover:text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[--color-primary] no-underline hover:no-underline focus:no-underline;
+  }
+  
+  .section-title {
+    @apply text-2xl font-bold text-[--color-text-primary] mb-6;
+  }
+  
+  .section-subtitle {
+    @apply text-lg text-[--color-text-secondary] mb-8;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 border border-[--color-input-border] rounded-lg focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:border-[--color-primary] transition-colors;
+  }
+  
+  .container-main {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .page-padding {
+    @apply py-12;
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.slide-in {
+  animation: slideIn 0.4s ease-out;
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+.bounce-animation {
+  animation: bounce 1s infinite;
+}
+
+/* Hover Effects */
+.hover-lift {
+  @apply transition-transform duration-200 hover:-translate-y-1;
+}
+
+.hover-scale {
+  @apply transition-transform duration-200 hover:scale-105;
+}
+
+.hover-shadow {
+  @apply transition-shadow duration-200 hover:shadow-lg;
+}
+
+/* Professional transitions for interactive elements */
+.btn-primary, .btn-secondary, .btn-outline, .card-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Fade in for page transitions */
+.page-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .section-title {
+    @apply text-xl mb-4;
+  }
+  
+  .section-subtitle {
+    @apply text-base mb-6;
+  }
+  
+  .page-padding {
+    @apply py-8;
+  }
+}
