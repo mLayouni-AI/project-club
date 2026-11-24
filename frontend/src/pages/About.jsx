@@ -59,13 +59,12 @@ export default function About() {
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-[--color-text-primary] mb-4">
             <span className="text-[--color-primary]">
-              Club Dev
+              Club DIA
             </span>
           </h1>
           <p className="text-xl text-[--color-text-secondary] max-w-3xl mx-auto leading-relaxed">
-            <strong>Club Dev</strong> est un club créé à l'<strong>ISTAG Bab Tizimi – Meknès</strong>.
-            Notre objectif est de développer des sites web, des plateformes, des applications,
-            et en général répondre aux besoins numériques de l'institut.
+            <strong>Club DIA — Digitalisation & Intelligence Artificielle</strong> réunit des membres intéressés par les technologies numériques, les projets logiciels et l'intelligence artificielle.
+            Le club favorise l'apprentissage pratique, le travail en équipe et le partage des connaissances.
           </p>
         </div>
 
@@ -137,7 +136,7 @@ export default function About() {
         <div className="bg-[--color-primary] rounded-2xl shadow-xl p-8 text-center text-white">
           <h2 className="text-3xl font-bold mb-4">Prêt à rejoindre l'aventure ?</h2>
           <p className="text-lg mb-6 text-[--color-accent]">
-            Rejoignez Club Dev et développez vos compétences techniques dans une ambiance collaborative !
+            Rejoignez le Club DIA et développez vos compétences techniques dans une ambiance collaborative !
           </p>
           <a
             href="/contact"

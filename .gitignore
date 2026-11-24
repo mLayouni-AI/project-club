@@ -1,0 +1,31 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Local databases, migration snapshots and user uploads
+backend/db.sqlite3
+backend/backups/
+backend/media/
+
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3-journal
+backend/venv/
+.venv/
+
+# Frontend build and dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env.local
+
+# Editors and OS
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

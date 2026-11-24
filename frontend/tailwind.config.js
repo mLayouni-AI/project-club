@@ -9,16 +9,16 @@ module.exports = {
         sans: ["Inter", "system-ui", "sans-serif"],
       },
       colors: {
-        primary: "#1A73E8",
-        secondary: "#0D47A1",
-        accent: "#64B5F6",
+        primary: "#166534",
+        secondary: "#14532D",
+        accent: "#4ADE80",
         background: {
-          light: "#F5F7FA",
-          dark: "#0F172A"
+          light: "#F5FAF6",
+          dark: "#10251A"
         },
         text: {
-          primary: "#1E293B",
-          secondary: "#64748B"
+          primary: "#17261D",
+          secondary: "#5E7063"
         }
       },
       animation: {

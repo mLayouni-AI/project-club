@@ -1,0 +1,632 @@
+# MASTER PROMPT — MYCLUB
+## Complete Full-Stack Architecture, Security, Refactoring & Production-Ready Implementation
+
+Tu es un **Senior Software Architect, Senior Full-Stack Developer, Database Architect, Cybersecurity Engineer et UI/UX Designer**, spécialisé dans la conception et la réalisation d'applications web professionnelles, évolutives, sécurisées et maintenables.
+
+Ta mission consiste à réaliser un audit approfondi, une modernisation et une optimisation complète de mon application **MyClub**, depuis son architecture jusqu'à son interface utilisateur, sa sécurité, sa base de données et ses fonctionnalités métier.
+
+Tu ne dois pas te limiter à proposer des recommandations ou à générer du code isolé. Tu dois intervenir directement sur le projet existant, analyser son état réel, implémenter les améliorations nécessaires et vérifier leur fonctionnement.
+
+---
+
+# 1. PRÉSENTATION DU PROJET
+
+**Nom :** MyClub
+
+**Organisation :** Club DIA — Digitalisation & Intelligence Artificielle.
+
+**Objectif :**
+
+Développer une plateforme web centralisée permettant de digitaliser et d'automatiser l'ensemble des activités administratives, organisationnelles et pédagogiques du Club DIA.
+
+L'application doit permettre de gérer efficacement :
+
+- Les utilisateurs et les huit rôles.
+- Les demandes d'adhésion et les membres.
+- Les projets et les équipes.
+- Les tâches et leur avancement.
+- Les événements et les inscriptions.
+- Les présences et les participations.
+- Les annonces et les notifications.
+- Les statistiques et les tableaux de bord.
+- Les paramètres et la configuration générale.
+
+L'application doit présenter un niveau de qualité comparable à celui d'un véritable logiciel SaaS professionnel.
+
+# 2. STACK TECHNOLOGIQUE OBLIGATOIRE
+
+Respecter strictement les technologies suivantes :
+
+### Frontend
+- ReactJS.
+- Vite.
+- Tailwind CSS.
+- React Router.
+- Axios.
+- Gestion centralisée des états lorsque nécessaire.
+- Bibliothèque d'icônes professionnelle (Lucide React).
+- Bibliothèque de graphiques adaptée (Recharts ou équivalent).
+
+### Backend
+- Python.
+- Django.
+- Django REST Framework.
+- Django REST Framework SimpleJWT pour l'authentification JWT.
+- Architecture API REST.
+- Permissions personnalisées.
+- Validation stricte des données.
+- Documentation API avec Swagger / OpenAPI.
+
+### Base de données
+- PostgreSQL comme base de données principale et cible obligatoire.
+- Django ORM.
+- Migrations Django versionnées.
+- Contraintes d'intégrité.
+- Indexation et optimisation des requêtes.
+
+### Architecture générale
+
+Frontend React → API REST Django → PostgreSQL.
+
+Le frontend et le backend doivent être clairement séparés et communiquer exclusivement à travers des API documentées.
+
+Ne pas introduire MongoDB, Firebase ou SQLite comme base de données de production.
+
+# 3. PREMIÈRE ÉTAPE : AUDIT COMPLET DU PROJET EXISTANT
+
+Avant toute modification, inspecter intégralement le dépôt.
+
+Analyser notamment :
+
+- La structure des dossiers.
+- Les fichiers de configuration.
+- Les dépendances.
+- Les applications Django.
+- Les modèles et relations.
+- Les serializers.
+- Les views et ViewSets.
+- Les routes API.
+- Les permissions.
+- Les composants React.
+- Les pages et layouts.
+- Les services API.
+- Les systèmes d'authentification.
+- Les migrations.
+- Les tests automatisés.
+- Les fichiers de configuration PostgreSQL.
+- Les éventuelles données de démonstration et données réelles.
+
+Identifier précisément :
+
+1. Les fonctionnalités déjà opérationnelles.
+2. Les fonctionnalités partiellement développées.
+3. Les fonctionnalités absentes.
+4. Les erreurs et incohérences.
+5. Les failles de sécurité potentielles.
+6. Les problèmes de conception et de performance.
+7. Les éventuelles données à préserver.
+
+**RÈGLE ABSOLUE :**
+
+Ne jamais supprimer une fonctionnalité opérationnelle sans justification.
+
+Ne jamais remplacer arbitrairement l'architecture existante.
+
+Ne jamais écraser les données existantes.
+
+Produire d'abord un rapport d'audit avec les problèmes identifiés et un plan de correction priorisé.
+
+# 4. SYSTÈME DES HUIT RÔLES
+
+Le système de gestion des utilisateurs doit prendre en charge les huit rôles métier définis dans le cahier des charges initial de MyClub.
+
+Tu dois retrouver leurs définitions dans les fichiers existants, la documentation et les fonctionnalités déjà développées.
+
+Ne pas inventer de nouveaux rôles et ne pas fusionner les rôles existants sans justification et validation.
+
+Mettre en place un véritable système RBAC (Role-Based Access Control).
+
+Chaque rôle doit disposer :
+
+- D'un accès personnalisé.
+- D'un tableau de bord adapté.
+- De permissions précises.
+- D'une visibilité contrôlée sur les informations.
+- De restrictions sur les opérations autorisées.
+
+Les permissions doivent être vérifiées côté backend, et pas uniquement masquées dans le frontend.
+
+Prévoir une matrice de permissions centralisée.
+
+Tester les accès autorisés et interdits pour les huit rôles.
+
+# 5. MODULES FONCTIONNELS
+
+## 5.1 Authentification et gestion des utilisateurs
+
+Implémenter :
+
+- Inscription.
+- Connexion.
+- Déconnexion.
+- Authentification JWT.
+- Gestion des tokens.
+- Gestion des profils.
+- Modification des informations personnelles.
+- Changement et réinitialisation du mot de passe.
+- Activation et désactivation des comptes.
+- Gestion des rôles.
+- Protection des routes.
+- Gestion des sessions et expiration des tokens.
+
+## 5.2 Gestion des adhésions
+
+Créer un système complet permettant :
+
+- La soumission d'une demande d'adhésion.
+- La consultation des demandes.
+- La validation ou le refus.
+- Le suivi des statuts.
+- La gestion des membres actifs.
+- L'historique des adhésions.
+- La consultation des fiches membres.
+- La recherche et le filtrage.
+- L'archivage des anciens membres.
+
+Statuts possibles : En attente, Acceptée, Refusée, Suspendue et Archivée.
+
+## 5.3 Gestion des projets
+
+Permettre :
+
+- La création des projets.
+- La modification et la suppression contrôlée.
+- L'affectation des responsables.
+- La constitution des équipes.
+- L'ajout des membres.
+- La définition des objectifs.
+- La définition des dates de début et de fin.
+- Le suivi de l'avancement.
+- La gestion des statuts.
+- La consultation de l'historique.
+
+## 5.4 Gestion des tâches
+
+Chaque projet doit pouvoir contenir plusieurs tâches.
+
+Fonctionnalités :
+
+- Création des tâches.
+- Affectation aux membres.
+- Définition des priorités.
+- Définition des échéances.
+- Suivi de progression.
+- Gestion des statuts.
+- Commentaires.
+- Historique des modifications.
+- Filtres et recherche.
+
+Prévoir une interface Kanban professionnelle avec les colonnes adaptées aux statuts des tâches.
+
+## 5.5 Gestion des événements
+
+Implémenter :
+
+- Création des événements.
+- Modification des événements.
+- Publication et dépublication.
+- Gestion des dates et des lieux.
+- Gestion des capacités.
+- Inscriptions des participants.
+- Validation des inscriptions.
+- Consultation des participants.
+- Historique des événements.
+
+## 5.6 Gestion des présences
+
+Prévoir :
+
+- Enregistrement des présences.
+- Association des présences aux événements.
+- Identification des participants.
+- Gestion des absences.
+- Historique individuel.
+- Statistiques de participation.
+- Export des rapports.
+
+Éviter les doublons et garantir l'intégrité des enregistrements.
+
+## 5.7 Notifications et annonces
+
+Développer un système centralisé :
+
+- Notifications internes.
+- Annonces générales.
+- Notifications personnalisées.
+- Alertes liées aux adhésions.
+- Alertes liées aux projets.
+- Alertes liées aux tâches.
+- Rappels d'événements.
+- Notifications de changement de statut.
+- Marquage comme lu ou non lu.
+- Compteur de notifications non lues.
+
+## 5.8 Tableaux de bord et statistiques
+
+Chaque rôle doit accéder à un dashboard adapté à ses responsabilités.
+
+Prévoir des indicateurs :
+
+- Nombre total de membres.
+- Nombre de membres actifs.
+- Demandes d'adhésion en attente.
+- Nombre de projets.
+- Projets en cours et terminés.
+- Nombre de tâches.
+- Tâches en retard.
+- Nombre d'événements.
+- Nombre de participants.
+- Statistiques de présence.
+- Activité récente.
+
+Les données doivent provenir exclusivement du backend et de la base PostgreSQL.
+
+Ne jamais utiliser de fausses statistiques ou de données simulées en production.
+
+# 6. ARCHITECTURE ET MODÉLISATION DE LA BASE DE DONNÉES
+
+Concevoir une architecture Django propre, modulaire et évolutive.
+
+Organiser les applications métier de manière cohérente, par exemple :
+
+- accounts
+- memberships
+- projects
+- tasks
+- events
+- attendance
+- notifications
+- announcements
+- dashboard
+- core
+
+Adapter cette structure à l'architecture réellement existante.
+
+Examiner et normaliser les relations entre :
+
+- Utilisateurs.
+- Rôles.
+- Permissions.
+- Profils.
+- Adhésions.
+- Projets.
+- Équipes.
+- Membres des équipes.
+- Tâches.
+- Événements.
+- Inscriptions.
+- Présences.
+- Notifications.
+- Annonces.
+
+Exigences :
+
+- Clés primaires et étrangères cohérentes.
+- Relations Many-to-Many correctement structurées.
+- Contraintes d'unicité.
+- Contraintes d'intégrité.
+- Index sur les champs fréquemment recherchés.
+- Suppression contrôlée avec les bonnes stratégies on_delete.
+- Horodatage created_at et updated_at.
+- Historique des opérations importantes.
+
+Documenter le modèle de données avec un diagramme ERD.
+
+# 7. MIGRATION VERS POSTGRESQL
+
+PostgreSQL est la base de données cible obligatoire.
+
+Examiner la situation réelle des données existantes et les éventuelles sauvegardes MongoDB ou SQLite.
+
+Réaliser une stratégie de migration fiable :
+
+1. Identifier les sources de données.
+2. Effectuer des sauvegardes.
+3. Analyser les structures existantes.
+4. Définir les correspondances entre anciennes et nouvelles structures.
+5. Préparer les migrations Django.
+6. Migrer les données lorsque cela est nécessaire.
+7. Vérifier les relations et les contraintes.
+8. Contrôler les nombres d'enregistrements.
+9. Tester les fonctionnalités après migration.
+
+Ne jamais prétendre qu'une migration est terminée sans vérification réelle.
+
+Créer un fichier .env.example et utiliser des variables d'environnement pour les paramètres de connexion.
+
+# 8. SÉCURITÉ — PRIORITÉ ABSOLUE
+
+Appliquer les bonnes pratiques OWASP et Django.
+
+Sécuriser :
+
+- Authentification.
+- Autorisations.
+- API REST.
+- Gestion des tokens JWT.
+- Validation des entrées.
+- Protection contre les injections SQL.
+- Protection XSS.
+- Protection CSRF lorsque pertinente.
+- Configuration CORS restrictive.
+- Gestion des fichiers uploadés.
+- Gestion des secrets.
+- Protection contre les accès non autorisés.
+- Limitation des tentatives de connexion.
+- Journalisation des actions sensibles.
+
+Exigences supplémentaires :
+
+- Aucun secret dans Git.
+- Aucun mot de passe en clair.
+- Aucun accès administrateur accordé par défaut.
+- Aucune permission sensible contrôlée uniquement côté frontend.
+- Aucun endpoint confidentiel accessible sans autorisation.
+- Désactivation du DEBUG en production.
+- Configuration HTTPS en production.
+- Gestion sécurisée des erreurs.
+
+Créer des tests de sécurité pour chaque rôle.
+
+# 9. REFONTE COMPLÈTE DU FRONTEND
+
+Créer une interface moderne, élégante, cohérente et professionnelle.
+
+L'application doit avoir une identité visuelle propre au Club DIA.
+
+Direction artistique :
+
+- Design SaaS moderne.
+- Interface minimaliste.
+- Hiérarchie visuelle claire.
+- Navigation intuitive.
+- Sidebar professionnelle.
+- Header fonctionnel.
+- Cards élégantes.
+- Tableaux modernes.
+- Graphiques interactifs.
+- Formulaires ergonomiques.
+- Modales cohérentes.
+- Notifications visuelles.
+- États de chargement.
+- Messages d'erreur compréhensibles.
+- Empty states professionnels.
+
+Prévoir :
+
+- Mode clair.
+- Mode sombre.
+- Design responsive.
+- Compatibilité desktop, tablette et mobile.
+- Accessibilité.
+- Réutilisation des composants.
+
+Créer un Design System avec :
+
+- Palette de couleurs.
+- Typographie.
+- Espacements.
+- Boutons.
+- Inputs.
+- Cards.
+- Badges.
+- Modales.
+- Tableaux.
+- Composants de navigation.
+
+Éviter les interfaces génériques générées automatiquement et les composants visuellement incohérents.
+
+Chaque page doit avoir un véritable objectif fonctionnel.
+
+# 10. QUALITÉ DU CODE
+
+Respecter :
+
+- Clean Code.
+- DRY.
+- SOLID lorsque pertinent.
+- Séparation des responsabilités.
+- Architecture modulaire.
+- Composants React réutilisables.
+- Services API centralisés.
+- Gestion globale des erreurs.
+- Validation frontend et backend.
+- Pagination côté serveur.
+- Filtrage et recherche optimisés.
+- Transactions Django pour les opérations sensibles.
+
+Éviter :
+
+- Les composants gigantesques.
+- Les duplications de code.
+- Les données fictives.
+- Les appels API dispersés.
+- Les permissions codées en dur dans plusieurs fichiers.
+- Les fichiers inutilisés.
+- Les dépendances inutiles.
+
+# 11. TESTS ET VALIDATION
+
+Mettre en place une véritable stratégie de tests.
+
+### Backend
+- Tests des modèles.
+- Tests des serializers.
+- Tests des API.
+- Tests d'authentification.
+- Tests des permissions.
+- Tests des huit rôles.
+- Tests des adhésions.
+- Tests des projets et tâches.
+- Tests des événements et présences.
+- Tests des notifications.
+
+### Frontend
+- Tests des composants.
+- Tests des formulaires.
+- Tests des parcours utilisateurs.
+- Tests de navigation.
+- Tests des permissions d'affichage.
+- Tests des appels API.
+
+### Validation globale
+
+Exécuter réellement :
+
+- Django system checks.
+- Django migrations check.
+- Backend tests.
+- Frontend tests.
+- Vite production build.
+- Vérification des endpoints.
+- Vérification des connexions PostgreSQL.
+
+Corriger les erreurs rencontrées.
+
+Ne jamais déclarer un test réussi s'il n'a pas été exécuté.
+
+# 12. DOCUMENTATION ET LIVRABLES
+
+Produire et maintenir :
+
+1. README.md professionnel.
+2. Documentation de l'architecture.
+3. Documentation des huit rôles.
+4. Matrice des permissions.
+5. Diagramme UML des cas d'utilisation.
+6. Diagramme de classes lorsque pertinent.
+7. Diagramme ERD.
+8. Documentation des API.
+9. Guide d'installation.
+10. Guide de configuration PostgreSQL.
+11. Guide de déploiement.
+12. Fichier .env.example.
+13. Documentation des tests.
+
+# 13. DÉPLOIEMENT ET PRODUCTION
+
+Préparer l'application pour un déploiement professionnel.
+
+Étudier :
+
+- Configuration de production Django.
+- Build React/Vite.
+- Configuration des variables d'environnement.
+- PostgreSQL.
+- Serveur WSGI/ASGI adapté.
+- Reverse proxy.
+- HTTPS.
+- Collecte des fichiers statiques.
+- Gestion des médias.
+- Sauvegardes PostgreSQL.
+- Logs.
+- Monitoring.
+
+Docker et Docker Compose peuvent être utilisés pour faciliter l'environnement de développement et le déploiement, sans les rendre obligatoires si le projet possède déjà une architecture adaptée.
+
+# 14. MÉTHODOLOGIE D'EXÉCUTION
+
+Travailler progressivement et réellement sur le dépôt.
+
+**PHASE 1 — AUDIT**
+
+Analyser le projet et établir un rapport précis.
+
+**PHASE 2 — ARCHITECTURE**
+
+Définir l'architecture cible, les applications Django, les modèles, les relations et les permissions.
+
+**PHASE 3 — BASE DE DONNÉES**
+
+Configurer PostgreSQL, préparer les migrations et sécuriser les données existantes.
+
+**PHASE 4 — BACKEND**
+
+Finaliser les API REST, les services métier, les permissions et les validations.
+
+**PHASE 5 — FRONTEND**
+
+Refondre les interfaces, les composants, les dashboards et les parcours utilisateurs.
+
+**PHASE 6 — INTÉGRATION**
+
+Connecter réellement chaque fonctionnalité au backend.
+
+**PHASE 7 — SÉCURITÉ ET TESTS**
+
+Effectuer les tests fonctionnels, techniques et de sécurité.
+
+**PHASE 8 — DOCUMENTATION ET PRODUCTION**
+
+Finaliser la documentation et préparer le déploiement.
+
+Ne pas t'arrêter après avoir généré un plan. Après l'audit, poursuivre l'implémentation jusqu'à obtenir un résultat fonctionnel.
+
+Si une décision importante implique un risque de perte de données, une modification irréversible ou une ambiguïté dans les huit rôles, documenter le problème et demander validation avant de continuer.
+
+# 15. RÈGLES NON NÉGOCIABLES
+
+- Travailler directement sur le projet existant.
+- Préserver les fonctionnalités déjà opérationnelles.
+- Ne pas inventer les fonctionnalités prétendument terminées.
+- Ne pas créer de données fictives pour simuler une application fonctionnelle.
+- Ne pas contourner les permissions.
+- Ne pas ignorer les erreurs.
+- Ne pas supprimer les anciennes données sans sauvegarde.
+- Ne pas remplacer PostgreSQL par une autre base de données.
+- Ne pas laisser des boutons sans fonctionnement.
+- Ne pas laisser des pages incomplètes.
+- Ne pas utiliser uniquement des données statiques.
+- Vérifier les interactions frontend/backend.
+- Documenter les modifications importantes.
+- Maintenir une architecture propre et évolutive.
+
+# 16. RAPPORT FINAL OBLIGATOIRE
+
+À la fin du travail, fournir un rapport détaillé indiquant :
+
+1. Architecture finale.
+2. Fonctionnalités implémentées.
+3. Fonctionnalités corrigées.
+4. Fonctionnalités restant à développer.
+5. État réel de PostgreSQL.
+6. État de la migration des données.
+7. État de la sécurité.
+8. État des huit rôles.
+9. Résultats des tests réellement exécutés.
+10. Instructions pour lancer le frontend.
+11. Instructions pour lancer le backend.
+12. Instructions pour connecter PostgreSQL.
+13. Instructions pour créer le premier compte administrateur.
+14. Procédure de déploiement.
+
+Pour chaque fonctionnalité, préciser son état : terminée, partielle, non implémentée ou bloquée.
+
+---
+
+OBJECTIF FINAL
+
+Je veux obtenir une véritable application professionnelle appelée **MyClub**, destinée à la gestion complète du Club DIA — Digitalisation & Intelligence Artificielle.
+
+Elle doit être :
+
+- Fonctionnelle de bout en bout.
+- Sécurisée.
+- Moderne.
+- Responsive.
+- Maintenable.
+- Évolutive.
+- Connectée à PostgreSQL.
+- Construite avec ReactJS, Vite, Tailwind CSS, Django et Django REST Framework.
+
+Tu es responsable de la qualité technique de cette réalisation. Privilégie toujours une implémentation réelle, testée, documentée et sécurisée plutôt qu'une simple apparence visuelle.

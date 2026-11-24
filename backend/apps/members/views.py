@@ -1,240 +1,197 @@
+import csv
 
-from rest_framework import status, permissions
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from django.db import transaction
+from django.http import StreamingHttpResponse
+from django.utils import timezone
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
-from .models import Member
-from .serializers import MemberSerializer
-from .permissions import IsAdminOrReadOnly, IsAdminOrSuperAdmin
+from rest_framework.response import Response
+
+from apps.announcements.models import Notification
+from .models import AuditLog, MembershipRequest, Role, User
+from .permissions import HasCapability
+from .serializers import (
+    MembershipRequestCreateSerializer,
+    MembershipRequestSerializer,
+    MembershipReviewSerializer,
+    RoleAssignmentSerializer,
+    AuditLogSerializer,
+    UserSerializer,
+)
 
 
-class MemberListCreate(APIView):
+def log_sensitive_action(actor, action, target, metadata=None):
+    return AuditLog.objects.create(
+        actor=actor,
+        action=action,
+        target_type=target._meta.label_lower,
+        target_id=str(target.pk),
+        metadata=metadata or {},
+    )
+
+
+class Echo:
+    def write(self, value):
+        return value
+
+
+def safe_csv_cell(value):
+    if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@", "\t", "\r")):
+        return f"'{value}"
+    return value
+
+
+class MemberViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = UserSerializer
+    search_fields = ("email", "first_name", "last_name")
+    ordering_fields = ("first_name", "last_name", "date_joined")
+    filterset_fields = ("is_active", "roles__code")
+
+    def get_queryset(self):
+        return User.objects.prefetch_related("roles__capabilities", "profile")
+
     def get_permissions(self):
-        if self.request.method in ['GET']:
-            # Anyone authenticated can view members
-            return [IsAuthenticated()]
+        if self.action in {"list", "retrieve", "export"}:
+            self.required_capability = "members.view_members"
+        elif self.action == "roles":
+            self.required_capability = "members.manage_roles"
         else:
-            # Only admins can create members
-            return [IsAdminOrSuperAdmin()]
+            self.required_capability = "members.manage_members"
+        return (HasCapability(),)
 
-    def get(self, request):
-        try:
-            objs = Member.objects.order_by('last_name')
-            result = []
-            for m in objs:
-                d = m.to_mongo().to_dict()
-                d['id'] = str(m.id)
-                # Remove the _id field to avoid ObjectId serialization issues
-                d.pop('_id', None)
-                result.append(d)
-            return Response(result)
-        except Exception as e:
-            # Return mock data when MongoDB is not available
-            mock_members = [
-                {
-                    'id': '1',
-                    'first_name': 'Ayoub',
-                    'last_name': 'Developer',
-                    'email': 'ayoub@example.com',
-                    'role': 'Member'
-                },
-                {
-                    'id': '2',
-                    'first_name': 'Salma',
-                    'last_name': 'Designer',
-                    'email': 'salma@example.com',
-                    'role': 'Member'
-                },
-                {
-                    'id': '3',
-                    'first_name': 'Rachid',
-                    'last_name': 'Fullstack',
-                    'email': 'rachid@example.com',
-                    'role': 'Member'
-                }
-            ]
-            return Response(mock_members)
+    @action(detail=False, methods=("get",))
+    def export(self, request):
+        rows = self.filter_queryset(self.get_queryset()).values_list("id", "first_name", "last_name", "email", "date_joined")
+        writer = csv.writer(Echo())
 
-    def post(self, request):
-        serializer = MemberSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                print(f"Creating member with data: {request.data}")
-                member = serializer.save()
-                print(f"Member created successfully: {member.id}")
-                
-                # Convert the created object to dict and ensure it has an id
-                if hasattr(member, 'to_mongo'):
-                    d = member.to_mongo().to_dict()
-                    d['id'] = str(member.id)
-                    d.pop('_id', None)
-                    # Remove password from response
-                    d.pop('password', None)
-                    return Response(d, status=status.HTTP_201_CREATED)
-                else:
-                    # If it's already a dict (mock data), just return it
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-            except Exception as e:
-                print(f"Error in post method: {str(e)}")
-                # Return mock data when MongoDB is not available
-                import uuid
-                mock_member = {
-                    'id': str(uuid.uuid4()),
-                    'first_name': request.data.get('first_name', 'New'),
-                    'last_name': request.data.get('last_name', 'Member'),
-                    'email': request.data.get('email', 'newmember@example.com'),
-                    'role': request.data.get('role', 'member')
-                }
-                return Response(mock_member, status=status.HTTP_201_CREATED)
-        print(f"Serializer errors: {serializer.errors}")
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        def output():
+            yield writer.writerow(("id", "first_name", "last_name", "email", "date_joined"))
+            for row in rows.iterator(chunk_size=500):
+                yield writer.writerow(tuple(safe_csv_cell(value) for value in row))
+
+        response = StreamingHttpResponse(output(), content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = 'attachment; filename="myclub-members.csv"'
+        return response
+
+    @action(detail=True, methods=("post",))
+    def roles(self, request, pk=None):
+        serializer = RoleAssignmentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = self.get_object()
+        requested_roles = serializer.validated_data["roles"]
+        if user.pk == request.user.pk:
+            if any(role.code == "club_admin" for role in requested_roles):
+                raise ValidationError({"roles": "Un administrateur ne peut pas s'attribuer ce rôle."})
+            if user.has_role("club_admin") and not any(role.code == "club_admin" for role in requested_roles):
+                raise ValidationError({"roles": "Un administrateur ne peut pas retirer son propre rôle."})
+        before = list(user.roles.values_list("code", flat=True))
+        user.roles.set(requested_roles)
+        after = list(user.roles.values_list("code", flat=True))
+        log_sensitive_action(request.user, "member.roles_changed", user, {"before": before, "after": after})
+        return Response(UserSerializer(user).data)
+
+    @action(detail=True, methods=("post",))
+    def deactivate(self, request, pk=None):
+        user = self.get_object()
+        if user.pk == request.user.pk:
+            raise ValidationError({"detail": "Vous ne pouvez pas désactiver votre propre compte."})
+        user.is_active = False
+        user.save(update_fields=("is_active", "updated_at"))
+        log_sensitive_action(request.user, "member.deactivated", user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=("post",))
+    def activate(self, request, pk=None):
+        user = self.get_object()
+        user.is_active = True
+        user.save(update_fields=("is_active", "updated_at"))
+        log_sensitive_action(request.user, "member.activated", user)
+        return Response(UserSerializer(user).data)
 
 
-class MemberDetail(APIView):
+class MembershipRequestViewSet(viewsets.ModelViewSet):
+    http_method_names = ("get", "post", "head", "options")
+    search_fields = ("user__email", "user__first_name", "user__last_name")
+    ordering_fields = ("created_at", "decided_at", "status")
+    filterset_fields = ("status",)
+
+    def get_queryset(self):
+        queryset = MembershipRequest.objects.select_related("user", "decided_by")
+        if self.request.user.has_capability("members.review_membership"):
+            return queryset
+        return queryset.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return MembershipRequestCreateSerializer
+        if self.action == "review":
+            return MembershipReviewSerializer
+        return MembershipRequestSerializer
+
     def get_permissions(self):
-        if self.request.method in ['GET']:
-            # Anyone authenticated can view a member
-            return [IsAuthenticated()]
-        else:
-            # Only admins can update/delete members
-            return [IsAdminOrSuperAdmin()]
+        if self.action == "review":
+            self.required_capability = "members.review_membership"
+            return (HasCapability(),)
+        return (IsAuthenticated(),)
 
-    def get_object(self, pk):
-        try:
-            return Member.objects.get(id=pk)
-        except Member.DoesNotExist:
-            return None
-        except Exception:
-            # When MongoDB is not available, check mock data
-            # Get mock members data - should match the mock data in MemberListCreate.get()
-            mock_members = [
-                {
-                    'id': '1',
-                    'first_name': 'Ayoub',
-                    'last_name': 'Developer',
-                    'email': 'ayoub@example.com',
-                    'role': 'Member'
-                },
-                {
-                    'id': '2',
-                    'first_name': 'Salma',
-                    'last_name': 'Designer',
-                    'email': 'salma@example.com',
-                    'role': 'Member'
-                },
-                {
-                    'id': '3',
-                    'first_name': 'Rachid',
-                    'last_name': 'Fullstack',
-                    'email': 'rachid@example.com',
-                    'role': 'Member'
-                }
-            ]
-            
-            # Try to find the member in mock data
-            for member_data in mock_members:
-                if str(member_data['id']) == str(pk):
-                    # Create a mock object that mimics a Member object
-                    class MockMember:
-                        def __init__(self, data):
-                            self._data = data
-                            self.id = data['id']
-                            for key, value in data.items():
-                                setattr(self, key, value)
-                        
-                        def delete(self):
-                            # Mock delete operation
-                            pass
-                            
-                        def to_mongo(self):
-                            # Return a mock mongo-like object
-                            class MongoDict:
-                                def to_dict(self):
-                                    return self._data
-                            mongo_obj = MongoDict()
-                            mongo_obj._data = self._data
-                            return mongo_obj
-                    
-                    return MockMember(member_data)
-            return None
+    def perform_create(self, serializer):
+        request = serializer.save(user=self.request.user)
+        log_sensitive_action(self.request.user, "membership.requested", request)
 
-    def get(self, request, pk):
-        obj = self.get_object(pk)
-        if not obj:
-            return Response(
-                {'detail': 'Member not found'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        try:
-            if hasattr(obj, 'to_mongo'):
-                d = obj.to_mongo().to_dict()
-                d['id'] = str(obj.id)
-                d.pop('_id', None)
-                return Response(d)
-            else:
-                # For mock objects
-                d = {}
-                for key, value in obj.__dict__.items():
-                    if not key.startswith('_'):
-                        d[key] = value
-                d['id'] = str(obj.id)
-                return Response(d)
-        except Exception as e:
-            return Response(
-                {'detail': f'Error retrieving member: {str(e)}'}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            MembershipRequestSerializer(serializer.instance).data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
 
-    def put(self, request, pk):
-        obj = self.get_object(pk)
-        if not obj:
-            return Response(
-                {'detail': 'Member not found'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        serializer = MemberSerializer(obj, data=request.data, partial=True)
-        if serializer.is_valid():
-            try:
-                # Update member fields
-                validated_data = serializer.validated_data
-                password = validated_data.pop('password', None)
-                
-                for k, v in validated_data.items():
-                    setattr(obj, k, v)
-                if password:
-                    obj.set_password(password)
-                obj.save()
-                
-                # Convert to dict
-                if hasattr(obj, 'to_mongo'):
-                    d = obj.to_mongo().to_dict()
-                    d['id'] = str(obj.id)
-                    d.pop('_id', None)
-                    # Remove password from response
-                    d.pop('password', None)
-                    return Response(d)
-                else:
-                    return Response(serializer.data)
-            except Exception as e:
-                return Response(
-                    {'detail': str(e)}, 
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=False, methods=("get",))
+    def mine(self, request):
+        queryset = MembershipRequest.objects.filter(user=request.user).select_related("user", "decided_by")
+        return Response(MembershipRequestSerializer(queryset, many=True).data)
 
-    def delete(self, request, pk):
-        obj = self.get_object(pk)
-        if not obj:
-            return Response(
-                {'detail': 'Member not found'}, 
-                status=status.HTTP_404_NOT_FOUND
+    @action(detail=True, methods=("post",))
+    def review(self, request, pk=None):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            membership = MembershipRequest.objects.select_for_update().select_related("user").get(pk=pk)
+            if membership.status not in (MembershipRequest.Status.PENDING, MembershipRequest.Status.INFORMATION_REQUESTED):
+                raise ValidationError({"status": "Cette demande a déjà reçu une décision définitive."})
+            membership.status = serializer.validated_data["status"]
+            membership.decision_note = serializer.validated_data.get("decision_note", "")
+            membership.decided_by = request.user
+            membership.decided_at = timezone.now()
+            membership.save(update_fields=("status", "decision_note", "decided_by", "decided_at", "updated_at"))
+            if membership.status == MembershipRequest.Status.APPROVED:
+                member_role = Role.objects.get(code="member")
+                membership.user.roles.add(member_role)
+                membership.user.roles.remove(*membership.user.roles.filter(code="visitor"))
+                MemberProfileJoined = membership.user.profile
+                if not MemberProfileJoined.joined_at:
+                    MemberProfileJoined.joined_at = membership.decided_at
+                    MemberProfileJoined.save(update_fields=("joined_at", "updated_at"))
+            log_sensitive_action(request.user, "membership.reviewed", membership, {"status": membership.status})
+            Notification.objects.create(
+                user=membership.user,
+                title="Mise à jour de votre demande d'adhésion",
+                message=f"Le statut de votre demande est maintenant : {membership.get_status_display()}.",
+                resource_type="membership_request",
+                resource_id=str(membership.pk),
             )
-        try:
-            obj.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Exception as e:
-            return Response(
-                {'detail': f'Error deleting member: {str(e)}'}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        return Response(MembershipRequestSerializer(membership).data)
+
+
+class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AuditLogSerializer
+    permission_classes = (HasCapability,)
+    required_capability = "audit.view_audit"
+
+    def get_queryset(self):
+        return AuditLog.objects.select_related("actor")

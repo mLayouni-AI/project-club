@@ -29,8 +29,8 @@ export default function Signup() {
       return;
     }
 
-    if (form.password.length < 4) {
-      setError("Le mot de passe doit contenir au moins 4 caractères");
+    if (form.password.length < 10) {
+      setError("Le mot de passe doit contenir au moins 10 caractères.");
       setLoading(false);
       return;
     }
@@ -60,15 +60,15 @@ export default function Signup() {
           <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-[--color-primary] bg-opacity-10 mb-4">
             <img 
               src="/images/logo.svg" 
-              alt="Club Dev Logo"
+              alt="Club DIA Logo"
               className="h-12 w-12 object-contain"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%231A73E8'/%3E%3Cpath d='M30 30 L20 50 L30 70' stroke='white' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M70 30 L80 50 L70 70' stroke='white' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Ctext x='50' y='58' font-family='Arial' font-size='20' fill='white' text-anchor='middle'%3E%26lt;/%26gt;%3C/text%3E%3Ccircle cx='35' cy='35' r='3' fill='white'/%3E%3Ccircle cx='65' cy='35' r='3' fill='white'/%3E%3Ccircle cx='50' cy='65' r='3' fill='white'/%3E%3C/svg%3E";
+                e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23166534'/%3E%3Cpath d='M30 30 L20 50 L30 70' stroke='white' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M70 30 L80 50 L70 70' stroke='white' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Ctext x='50' y='58' font-family='Arial' font-size='20' fill='white' text-anchor='middle'%3E%26lt;/%26gt;%3C/text%3E%3Ccircle cx='35' cy='35' r='3' fill='white'/%3E%3Ccircle cx='65' cy='35' r='3' fill='white'/%3E%3Ccircle cx='50' cy='65' r='3' fill='white'/%3E%3C/svg%3E";
               }}
             />
           </div>
-          <h2 className="mt-4 text-3xl font-extrabold text-[--color-text-primary]">Rejoindre Club Dev</h2>
+          <h2 className="mt-4 text-3xl font-extrabold text-[--color-text-primary]">Rejoindre le Club DIA</h2>
           <p className="mt-2 text-center text-sm text-[--color-text-secondary]">
             Plateforme de gestion du club de développement
           </p>
@@ -158,11 +158,11 @@ export default function Signup() {
                 name="password"
                 type="password"
                 className="input-field"
-                placeholder="Créez un mot de passe (min. 4 caractères)"
+                placeholder="Créez un mot de passe (10 caractères minimum)"
                 value={form.password}
                 onChange={handleChange}
                 required
-                minLength={4}
+                minLength={10}
               />
             </div>
 

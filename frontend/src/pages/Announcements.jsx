@@ -1,209 +1,85 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { announcementsAPI, errorMessage } from "../services/api";
+
+const statusLabel = { draft: "Brouillon", published: "Publiée", archived: "Archivée" };
 
 export default function Announcements() {
-  const { user, announcements, setAnnouncements } = useAuth();
-  const [text, setText] = useState("");
-  const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState("normal");
-  const [search, setSearch] = useState("");
+  const { user, hasCapability } = useAuth();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [query, setQuery] = useState("");
+  const [form, setForm] = useState({ title: "", content: "", audience: "members" });
+  const canManage = hasCapability("announcements.manage_announcements");
 
-  // Check if current user is admin
-  const isAdmin = user?.role === 'admin';
-
-  const handleAdd = (e) => {
-    e.preventDefault();
-    if (!text) return;
-    setAnnouncements([...announcements, { 
-      id: Date.now(), 
-      text,
-      title: title || "Annonce",
-      priority,
-      date: new Date().toLocaleDateString(),
-      author: "Administrateur"
-    }]);
-    setText("");
-    setTitle("");
-    setPriority("normal");
+  const load = async () => {
+    setLoading(true);
+    try {
+      setItems(await announcementsAPI.getAll());
+      setError("");
+    } catch (requestError) {
+      setError(errorMessage(requestError, "Les actualités ne sont pas disponibles pour le moment."));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRemove = (id) => {
-    // Check if user is admin before allowing delete
-    if (!isAdmin) {
-      setError("Seuls les administrateurs peuvent supprimer des annonces.");
-      setTimeout(() => setError(""), 3000);
-      return;
-    }
-    
+  useEffect(() => { load(); }, []);
+
+  const filtered = useMemo(() => items.filter((item) => `${item.title} ${item.content}`.toLowerCase().includes(query.toLowerCase())), [items, query]);
+
+  const handleCreate = async (event) => {
+    event.preventDefault();
+    setBusyId("new");
     setError("");
-    setSuccess("");
-    
-    setAnnouncements(announcements.filter((a) => a.id !== id));
-    setSuccess("Annonce supprimée avec succès !");
-    setTimeout(() => setSuccess(""), 3000);
-  };
-
-  const filteredAnnouncements = announcements.filter(a => 
-    (a.text && a.text.toLowerCase().includes(search.toLowerCase())) ||
-    (a.title && a.title.toLowerCase().includes(search.toLowerCase()))
-  );
-
-  const getPriorityBadge = (priority) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-800";
-      case "medium":
-        return "bg-orange-100 text-orange-800";
-      case "normal":
-      default:
-        return "bg-blue-100 text-blue-800";
+    try {
+      await announcementsAPI.create(form);
+      setForm({ title: "", content: "", audience: "members" });
+      await load();
+    } catch (requestError) {
+      setError(errorMessage(requestError, "L'annonce n'a pas pu être enregistrée."));
+    } finally {
+      setBusyId(null);
     }
   };
 
-  const getPriorityLabel = (priority) => {
-    switch (priority) {
-      case "high":
-        return "Haute priorité";
-      case "medium":
-        return "Priorité moyenne";
-      case "normal":
-      default:
-        return "Standard";
+  const moderate = async (item, action) => {
+    if (action === "delete" && !window.confirm(`Supprimer l'annonce « ${item.title} » ?`)) return;
+    setBusyId(item.id);
+    setError("");
+    try {
+      if (action === "publish") await announcementsAPI.publish(item.id);
+      if (action === "unpublish") await announcementsAPI.unpublish(item.id);
+      if (action === "delete") await announcementsAPI.delete(item.id);
+      await load();
+    } catch (requestError) {
+      setError(errorMessage(requestError, "Cette action n'a pas pu être enregistrée."));
+    } finally {
+      setBusyId(null);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[--color-background-light]">
-      <div className="container-main py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[--color-text-primary] mb-2">Annonces</h1>
-          <p className="text-[--color-text-secondary]">Partager les mises à jour importantes et les nouvelles avec les membres du club</p>
-        </div>
+    <section className="container-main py-12">
+      <div className="max-w-3xl"><p className="text-sm font-bold uppercase tracking-widest text-emerald-700">Vie du club</p><h1 className="mt-2 text-3xl font-bold text-slate-950">Actualités</h1><p className="mt-2 text-slate-600">Annonces publiées par l'équipe du Club DIA.</p></div>
+      <label className="mt-7 block max-w-xl text-sm font-medium text-slate-700">Rechercher<input className="input-field mt-2" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Titre ou contenu" /></label>
+      {error && <p className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">{error}</p>}
 
-        <div className="bg-[--color-card-bg] rounded-2xl shadow-xl p-6 card mb-8">
-          <div className="mb-6">
-            <input
-              type="text"
-              placeholder="Rechercher des annonces..."
-              className="input-field"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+      {canManage && <details className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><summary className="cursor-pointer font-semibold text-slate-900">Rédiger une annonce</summary><form onSubmit={handleCreate} className="mt-5 grid gap-4"><label className="text-sm font-medium text-slate-700">Titre<input required maxLength={200} className="input-field mt-2" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label><label className="text-sm font-medium text-slate-700">Contenu<textarea required maxLength={10000} rows={5} className="input-field mt-2" value={form.content} onChange={(event) => setForm({ ...form, content: event.target.value })} /></label><label className="text-sm font-medium text-slate-700">Audience<select className="input-field mt-2 max-w-xs" value={form.audience} onChange={(event) => setForm({ ...form, audience: event.target.value })}><option value="members">Membres du club</option><option value="public">Publique</option></select></label><button disabled={busyId === "new"} className="w-fit rounded-lg bg-emerald-700 px-4 py-2.5 font-semibold text-white disabled:opacity-60">{busyId === "new" ? "Enregistrement…" : "Enregistrer en brouillon"}</button></form></details>}
 
-          {/* Only show create announcement form for admins */}
-          {isAdmin && (
-            <form onSubmit={handleAdd} className="border-t border-gray-200 pt-6">
-            <h3 className="text-lg font-medium mb-4 text-[--color-text-primary]">Créer une nouvelle annonce</h3>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-[--color-text-primary] mb-1">Titre</label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="Titre de l'annonce"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-[--color-text-primary] mb-1">Message</label>
-              <textarea
-                className="input-field"
-                rows={4}
-                placeholder="Écrivez votre annonce ici..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div className="w-full sm:w-48">
-                <label className="block text-sm font-medium text-[--color-text-primary] mb-1">Priorité</label>
-                <select
-                  className="input-field"
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                >
-                  <option value="normal">Standard</option>
-                  <option value="medium">Priorité moyenne</option>
-                  <option value="high">Haute priorité</option>
-                </select>
-              </div>
-              <button type="submit" className="btn-primary mt-6 sm:mt-0">Publier l'annonce</button>
-            </div>
-            
-            {error && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                {error}
-              </div>
-            )}
-            
-            {success && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                {success}
-              </div>
-            )}
-          </form>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          {filteredAnnouncements.length > 0 ? (
-            filteredAnnouncements.map((a) => (
-              <div className="bg-[--color-card-bg] rounded-2xl shadow-xl p-6 card" key={a.id}>
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-xl font-semibold text-[--color-text-primary]">{a.title}</h3>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityBadge(a.priority)}`}>
-                      {getPriorityLabel(a.priority)}
-                    </span>
-                    {/* Only show delete button for admins */}
-                    {isAdmin && (
-                      <button
-                        className="text-red-600 hover:text-red-800"
-                        onClick={() => handleRemove(a.id)}
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="text-[--color-text-secondary] mb-4">{a.text}</div>
-                
-                <div className="flex items-center text-sm text-[--color-text-secondary] border-t border-gray-200 pt-3">
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {a.date}
-                  <span className="mx-2">•</span>
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  {a.author}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-12 bg-[--color-card-bg] rounded-2xl shadow-xl card">
-              <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-              </svg>
-              <h3 className="text-lg font-medium text-[--color-text-primary] mb-1">Aucune annonce trouvée</h3>
-              <p className="text-[--color-text-secondary]">Créez votre première annonce pour la partager avec les membres du club.</p>
-            </div>
-          )}
-        </div>
+      <div className="mt-8 space-y-4" aria-live="polite">
+        {loading ? <p className="py-10 text-center text-slate-500">Chargement des actualités…</p> : filtered.length ? filtered.map((item) => (
+          <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold text-slate-950">{item.title}</h2><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{statusLabel[item.status] || item.status} · {item.audience === "public" ? "Public" : "Membres"}</span></div>
+            <p className="mt-3 whitespace-pre-line leading-7 text-slate-700">{item.content}</p>
+            <p className="mt-4 text-xs text-slate-500">{item.published_at ? `Publiée le ${new Date(item.published_at).toLocaleDateString("fr-FR")}` : `Créée le ${new Date(item.created_at).toLocaleDateString("fr-FR")}`}{item.author_name ? ` · ${item.author_name}` : ""}</p>
+            {canManage && <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-4">{item.status === "published" ? <button type="button" disabled={busyId === item.id} onClick={() => moderate(item, "unpublish")} className="text-sm font-semibold text-emerald-700 disabled:opacity-50">Dépublier</button> : <button type="button" disabled={busyId === item.id} onClick={() => moderate(item, "publish")} className="text-sm font-semibold text-emerald-700 disabled:opacity-50">Publier</button>}<button type="button" disabled={busyId === item.id} onClick={() => moderate(item, "delete")} className="text-sm font-semibold text-red-700 disabled:opacity-50">Supprimer</button></div>}
+          </article>
+        )) : <div className="rounded-2xl border border-dashed border-slate-300 py-14 text-center"><h2 className="font-semibold text-slate-800">Aucune actualité disponible</h2><p className="mt-2 text-sm text-slate-500">Les annonces apparaîtront ici après leur publication.</p></div>}
       </div>
-    </div>
+      {!user && <p className="mt-6 text-sm text-slate-500">Certaines annonces sont réservées aux membres connectés.</p>}
+    </section>
   );
 }

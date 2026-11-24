@@ -1,34 +1,26 @@
-// Simple test to check if we can make a login request
-const axios = require('axios');
+const axios = require("axios");
+
+const apiBaseUrl = (process.env.MYCLUB_API_BASE_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
+const email = process.env.MYCLUB_TEST_EMAIL;
+const password = process.env.MYCLUB_TEST_PASSWORD;
 
 async function testLogin() {
+  if (!email || !password) {
+    console.error("Set MYCLUB_TEST_EMAIL and MYCLUB_TEST_PASSWORD before running this smoke check.");
+    process.exitCode = 2;
+    return;
+  }
+
   try {
-    console.log('Testing login request...');
-    
-    const response = await axios.post('http://localhost:8000/api/members/auth/login/', {
-      email: 'admin@alienscoder.com',
-      password: 'admin123'
-    }, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('Success! Response:', response.data);
-  } catch (error) {
-    console.log('Error occurred:');
-    if (error.response) {
-      // Server responded with error status
-      console.log('Status:', error.response.status);
-      console.log('Data:', error.response.data);
-      console.log('Headers:', error.response.headers);
-    } else if (error.request) {
-      // Request was made but no response received
-      console.log('No response received:', error.request);
-    } else {
-      // Something else happened
-      console.log('Error message:', error.message);
+    const { data } = await axios.post(`${apiBaseUrl}/auth/login/`, { email, password }, { timeout: 10000 });
+    if (!data.access || !data.refresh) {
+      throw new Error("The API response did not contain both JWT tokens.");
     }
+    console.log("Login endpoint returned access and refresh tokens.");
+  } catch (error) {
+    const status = error.response?.status;
+    console.error(status ? `Login request failed (HTTP ${status}).` : "Login request failed before receiving an HTTP response.");
+    process.exitCode = 1;
   }
 }
 

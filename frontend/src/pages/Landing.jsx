@@ -1,198 +1,63 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+const areas = [
+  { number: "01", title: "Digitalisation", text: "Concevoir des services numériques utiles aux étudiants et à leur environnement." },
+  { number: "02", title: "Intelligence artificielle", text: "Découvrir les méthodes d'IA et apprendre à les appliquer avec discernement." },
+  { number: "03", title: "Projets en équipe", text: "Passer de l'idée au prototype, partager les compétences et documenter le travail." },
+];
 
 export default function Landing() {
-  const domains = [
-    {
-      title: "Développement Web",
-      description: "Création de sites web modernes et performants avec les dernières technologies"
-    },
-    {
-      title: "Développement d'Applications",
-      description: "Applications mobiles et desktop pour répondre aux besoins digitaux"
-    },
-    {
-      title: "UX/UI Design",
-      description: "Interfaces utilisateur intuitives et expérience utilisateur optimale"
-    },
-    {
-      title: "Projets Digitaux",
-      description: "Solutions digitales sur mesure pour l'ISTAG et ses partenaires"
-    }
-  ];
-
-  const achievements = [
-    {
-      title: "15+ Projets Réalisés",
-      description: "Sites web, applications et outils pour l'institut"
-    },
-    {
-      title: "50+ Membres Formés",
-      description: "Étudiants formés aux technologies web modernes"
-    },
-    {
-      title: "10+ Ateliers Organisés",
-      description: "Formations pratiques en développement et design"
-    }
-  ];
-
-  const reasons = [
-    {
-      title: "Travail en Équipe",
-      description: "Collaborez sur des projets réels avec d'autres passionnés"
-    },
-    {
-      title: "Formations Gratuites",
-      description: "Accédez à des formations de qualité sans frais"
-    },
-    {
-      title: "Encadrement Professionnel",
-      description: "Bénéficiez de l'expertise de mentors expérimentés"
-    },
-    {
-      title: "Expérience Réelle",
-      description: "Travaillez sur de vrais projets pour votre portfolio"
-    }
-  ];
+  const { user } = useAuth();
 
   return (
-    <div className="bg-[--color-background-light]">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-[--color-primary]">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="relative container-main py-24 lg:py-32">
-          <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 slide-in">
-              Bienvenue dans{" "}
-              <span className="text-[--color-secondary]">
-                Club Dev
-              </span>
-            </h1>
-            <p className="text-xl text-[--color-accent] mb-10 fade-in">
-              Le club qui forme les développeurs de demain à l'ISTAG Meknès
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center fade-in">
-              <Link
-                to="/signup"
-                className="btn-primary px-8 py-4 text-lg no-underline hover:no-underline focus:no-underline"
-              >
-                Rejoindre le Club
-              </Link>
-              <Link
-                to="/projects"
-                className="btn-outline px-8 py-4 text-lg no-underline hover:no-underline focus:no-underline"
-              >
-                Découvrir nos Projets
-              </Link>
+    <div className="bg-white">
+      <section className="relative overflow-hidden bg-emerald-950 text-white">
+        <div className="absolute inset-0 opacity-30" aria-hidden="true" style={{ backgroundImage: "radial-gradient(circle at 75% 20%, #16a34a 0, transparent 35%), radial-gradient(circle at 15% 90%, #0f766e 0, transparent 28%)" }} />
+        <div className="container-main relative grid min-h-[34rem] items-center gap-10 py-20 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="max-w-3xl">
+            <p className="mb-5 inline-flex rounded-full border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-200">Club DIA · Digitalisation & intelligence artificielle</p>
+            <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">Apprendre en construisant des projets numériques.</h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">MyClub rassemble les membres, les projets et les activités du Club DIA dans un espace commun, de la première idée au travail d'équipe.</p>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link to={user ? "/membership" : "/signup"} className="rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-white shadow-lg shadow-emerald-950/30 hover:bg-emerald-400">{user ? "Voir mon adhésion" : "Rejoindre le club"}</Link>
+              <Link to="/projects" className="rounded-xl border border-white/25 px-5 py-3 font-semibold text-white hover:bg-white/10">Découvrir les projets</Link>
+            </div>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-7 shadow-2xl backdrop-blur-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-200">L'esprit du club</p>
+            <div className="mt-7 space-y-6">
+              <div><p className="text-xl font-semibold">Explorer</p><p className="mt-1 text-sm leading-6 text-slate-300">Tester des outils, partager une veille et apprendre ensemble.</p></div>
+              <div className="border-t border-white/10 pt-5"><p className="text-xl font-semibold">Créer</p><p className="mt-1 text-sm leading-6 text-slate-300">Construire des applications et prototypes suivis par le club.</p></div>
+              <div className="border-t border-white/10 pt-5"><p className="text-xl font-semibold">Transmettre</p><p className="mt-1 text-sm leading-6 text-slate-300">Documenter les apprentissages et aider les nouveaux membres à progresser.</p></div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Nos Domaines */}
-      <div className="container-main py-20">
-        <div className="text-center mb-16">
-          <h2 className="section-title">Nos Domaines d'Expertise</h2>
-          <p className="section-subtitle">Technologies et compétences que nous maîtrisons</p>
+      <section className="container-main py-20">
+        <div className="max-w-2xl">
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">Ce que nous faisons</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Des compétences qui se développent dans la pratique</h2>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {domains.map((domain, index) => (
-            <div
-              key={index}
-              className="card-hover p-8 text-center group"
-            >
-              <div className="bg-[--color-primary] bg-opacity-10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-[--color-primary] group-hover:bg-opacity-20 transition-all duration-300">
-                <svg className="h-8 w-8 text-[--color-primary] group-hover:text-[--color-secondary]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[--color-text-primary] mb-3">{domain.title}</h3>
-              <p className="text-[--color-text-secondary]">{domain.description}</p>
-            </div>
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {areas.map((area) => (
+            <article key={area.number} className="rounded-2xl border border-slate-200 bg-slate-50 p-7">
+              <span className="text-sm font-bold text-emerald-700">{area.number}</span>
+              <h3 className="mt-5 text-xl font-semibold text-slate-950">{area.title}</h3>
+              <p className="mt-3 leading-7 text-slate-600">{area.text}</p>
+            </article>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Nos Réalisations */}
-      <div className="bg-[--color-background-light] py-20">
-        <div className="container-main">
-          <div className="text-center mb-16">
-            <h2 className="section-title">Nos Réalisations</h2>
-            <p className="section-subtitle">Ce que nous avons accompli ensemble</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {achievements.map((achievement, index) => (
-              <div
-                key={index}
-                className="bg-[--color-card-bg] p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center card"
-              >
-                <div className="bg-[--color-primary] bg-opacity-10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="h-8 w-8 text-[--color-primary]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-[--color-text-primary] mb-3">{achievement.title}</h3>
-                <p className="text-[--color-text-secondary]">{achievement.description}</p>
-              </div>
-            ))}
-          </div>
+      <section className="border-y border-slate-200 bg-slate-50">
+        <div className="container-main flex flex-col items-start justify-between gap-6 py-14 md:flex-row md:items-center">
+          <div><h2 className="text-2xl font-bold text-slate-950">Vous avez une idée ou souhaitez apprendre ?</h2><p className="mt-2 text-slate-600">Découvrez le club et envoyez une demande d'adhésion depuis votre compte.</p></div>
+          <Link to={user ? "/membership" : "/signup"} className="shrink-0 rounded-xl bg-emerald-900 px-5 py-3 font-semibold text-white hover:bg-emerald-800">{user ? "Ma demande" : "Créer un compte"}</Link>
         </div>
-      </div>
-
-      {/* Pourquoi Club Dev */}
-      <div className="container-main py-20">
-        <div className="text-center mb-16">
-          <h2 className="section-title">Pourquoi Club Dev ?</h2>
-          <p className="section-subtitle">Les avantages de rejoindre notre communauté</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {reasons.map((reason, index) => (
-            <div
-              key={index}
-              className="flex items-start space-x-6 p-6 card-hover"
-            >
-              <div className="flex-shrink-0 bg-[--color-primary] bg-opacity-10 w-12 h-12 rounded-full flex items-center justify-center">
-                <svg className="h-6 w-6 text-[--color-primary]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-[--color-text-primary] mb-2">{reason.title}</h3>
-                <p className="text-[--color-text-secondary]">{reason.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Call to Action */}
-      <div className="bg-[--color-primary] py-20">
-        <div className="container-main text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Deviens Membre Maintenant
-          </h2>
-          <p className="text-xl text-[--color-accent] mb-8 max-w-2xl mx-auto">
-            C'est gratuit ! Rejoins une communauté de passionnés et développe tes compétences
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/signup"
-              className="btn-primary px-10 py-4 text-lg no-underline hover:no-underline focus:no-underline"
-            >
-              Inscription Gratuite
-            </Link>
-            <Link
-              to="/about"
-              className="btn-outline px-10 py-4 text-lg text-white border-white hover:bg-white hover:text-[--color-primary] no-underline hover:no-underline focus:no-underline"
-            >
-              En Savoir Plus
-            </Link>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

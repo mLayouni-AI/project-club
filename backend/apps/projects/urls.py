@@ -1,8 +1,21 @@
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-from django.urls import path
-from .views import ProjectListCreate, ProjectDetail
+from .views import (
+    MilestoneViewSet,
+    ProjectFileViewSet,
+    ProjectMembershipViewSet,
+    ProjectViewSet,
+    TaskCommentViewSet,
+    TaskViewSet,
+)
 
-urlpatterns = [
-    path('', ProjectListCreate.as_view(), name='projects_list_create'),
-    path('<str:pk>/', ProjectDetail.as_view(), name='project_detail'),
-]
+router = DefaultRouter()
+router.register("projects", ProjectViewSet, basename="project")
+router.register("tasks", TaskViewSet, basename="task")
+router.register("milestones", MilestoneViewSet, basename="milestone")
+router.register("project-memberships", ProjectMembershipViewSet, basename="project-membership")
+router.register("task-comments", TaskCommentViewSet, basename="task-comment")
+router.register("project-files", ProjectFileViewSet, basename="project-file")
+
+urlpatterns = [path("", include(router.urls))]

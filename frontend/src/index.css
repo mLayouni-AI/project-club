@@ -1,175 +1,144 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-/* Official Club Dev Color Palette */
 :root {
-  --color-primary: #1A73E8;        /* Professional blue - trust, technology */
-  --color-secondary: #0D47A1;       /* Deep authority blue - for admins */
-  --color-accent: #64B5F6;          /* Secondary action blue */
-  --color-background-light: #F5F7FA; /* Visual rest background */
-  --color-background-dark: #0F172A;  /* Modern dashboard dark */
-  --color-text-primary: #1E293B;    /* Maximum readability */
-  --color-text-secondary: #64748B;  /* Secondary information */
-  --color-success: #27AE60;        /* Success actions */
-  --color-warning: #F59E0B;        /* Warning states */
-  --color-danger: #DC2626;         /* Danger/error actions */
-  --color-info: #3498DB;           /* Information */
-  --color-input-border: #CBD5E1;    /* Input borders */
-  --color-card-bg: #FFFFFF;        /* Card backgrounds */
-  --color-table-header: #F1F5F9;    /* Table header backgrounds */
-  --color-table-hover: #E0F2FE;     /* Table row hover */
+  color-scheme: light;
+  --color-primary: #166534;
+  --color-secondary: #14532d;
+  --color-accent: #4ade80;
+  --color-background-light: #f5faf6;
+  --color-background-dark: #10251a;
+  --color-text-primary: #17261d;
+  --color-text-secondary: #5e7063;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+  --color-info: #0f766e;
+  --color-input-border: #cbd8ce;
+  --color-card-bg: #ffffff;
+  --color-table-header: #f1f7f2;
+  --color-table-hover: #f0fdf4;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Global no-underline styles - Remove all underlines from links */
-a, a:hover, a:focus, a:active,
-.Link, .Link:hover, .Link:focus, .Link:active,
-.NavLink, .NavLink:hover, .NavLink:focus, .NavLink:active,
-button, button:hover, button:focus, button:active {
-  text-decoration: none !important;
-}
-
-/* Force no underline globally */
-a {
-  text-decoration: none !important;
-}
-
-/* Base Styles */
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: var(--color-text-primary);
-  background-color: var(--color-background-light);
-}
-
-/* Custom components */
-@layer components {
-  .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 transition-all duration-200 no-underline hover:no-underline focus:no-underline;
-  }
-  
-  .card-hover {
-    @apply card hover:shadow-md hover:border-gray-300;
-  }
-  
-  .btn-primary {
-    @apply bg-[--color-primary] hover:bg-[--color-secondary] text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[--color-primary] no-underline hover:no-underline focus:no-underline;
-  }
-  
-  .btn-secondary {
-    @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2.5 px-5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 no-underline hover:no-underline focus:no-underline;
-  }
-  
-  .btn-outline {
-    @apply border border-[--color-primary] text-[--color-primary] hover:bg-[--color-primary] hover:text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[--color-primary] no-underline hover:no-underline focus:no-underline;
-  }
-  
-  .section-title {
-    @apply text-2xl font-bold text-[--color-text-primary] mb-6;
-  }
-  
-  .section-subtitle {
-    @apply text-lg text-[--color-text-secondary] mb-8;
-  }
-  
-  .input-field {
-    @apply w-full px-4 py-3 border border-[--color-input-border] rounded-lg focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:border-[--color-primary] transition-colors;
-  }
-  
-  .container-main {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
-  
-  .page-padding {
-    @apply py-12;
-  }
-  
-  .fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-.slide-in {
-  animation: slideIn 0.4s ease-out;
-}
-
-.pulse-animation {
-  animation: pulse 2s infinite;
-}
-
-.bounce-animation {
-  animation: bounce 1s infinite;
-}
-
-/* Hover Effects */
-.hover-lift {
-  @apply transition-transform duration-200 hover:-translate-y-1;
-}
-
-.hover-scale {
-  @apply transition-transform duration-200 hover:scale-105;
-}
-
-.hover-shadow {
-  @apply transition-shadow duration-200 hover:shadow-lg;
-}
-
-/* Professional transitions for interactive elements */
-.btn-primary, .btn-secondary, .btn-outline, .card-hover {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Fade in for page transitions */
-.page-transition {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* Smooth scrolling */
 html {
+  min-width: 320px;
   scroll-behavior: smooth;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--color-text-primary);
+  background: var(--color-background-light);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 3px solid #4ade80;
+  outline-offset: 3px;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@layer components {
+  .card,
+  .card-hover {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200;
+  }
+
+  .card-hover:hover {
+    @apply -translate-y-0.5 border-emerald-200 shadow-md;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-2.5 font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    background-color: var(--color-primary);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--color-secondary);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl bg-emerald-50 px-5 py-2.5 font-semibold text-emerald-900 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center rounded-xl border border-emerald-700 px-5 py-2.5 font-semibold text-emerald-800 transition-colors hover:bg-emerald-50;
+  }
+
   .section-title {
-    @apply text-xl mb-4;
+    @apply mb-4 text-2xl font-bold tracking-tight text-slate-950;
   }
-  
+
   .section-subtitle {
-    @apply text-base mb-6;
+    @apply mb-8 text-lg leading-7 text-slate-600;
   }
-  
+
+  .input-field {
+    @apply w-full rounded-xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 transition;
+    border-color: var(--color-input-border);
+  }
+
+  .input-field:focus {
+    outline: 2px solid #16a34a;
+    outline-offset: 1px;
+    border-color: #15803d;
+  }
+
+  .container-main {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
   .page-padding {
-    @apply py-8;
+    @apply py-10 sm:py-14;
+  }
+
+  .fade-in {
+    animation: fadeIn 240ms ease-out both;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
