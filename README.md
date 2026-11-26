@@ -4,15 +4,47 @@ MyClub centralise la vie du Club DIA — Digitalisation & Intelligence Artificie
 
 ## Architecture
 
-La décision de pile, ses alternatives et ses conséquences sont consignées dans [ADR-001 — Architecture](docs/ADR-001-architecture.md).
-Le modèle des données, la matrice RBAC provisoire, les cas d'utilisation et les routes API sont décrits dans [Architecture MyClub](docs/ARCHITECTURE.md). L'état réellement vérifié le 19 novembre 2026 figure dans [l'audit technique](docs/AUDIT_TECHNIQUE_2026-11-19.md).
-
-- **Frontend** : React 19, Vite, Tailwind CSS 4, React Router, Axios, Vitest et React Testing Library.
-- **Backend** : Django 6, Django REST Framework et Simple JWT. L'API est versionnée sous `/api/v1/`.
-- **Données actives** : PostgreSQL avec Django ORM. MongoDB ne sert que de source à l'outil de sauvegarde et de migration.
+- **Frontend** : React 19, Vite, Tailwind CSS 4, React Router et Axios. Vitest et React Testing Library servent aux tests.
+- **Backend** : Django 6, Django REST Framework et Simple JWT. L'API REST est versionnée sous `/api/v1/`.
+- **Base principale** : PostgreSQL, utilisé par Django ORM et géré par les migrations Django. La configuration active refuse les URL de base de données non PostgreSQL. SQLite en mémoire est réservé aux tests ; MongoDB sert uniquement de source aux outils de sauvegarde et de migration historiques.
 - **Documentation API** : Swagger à `/api/v1/docs/` et schéma OpenAPI à `/api/v1/openapi.json`.
 
-La configuration Django refuse les URL de base de données non PostgreSQL. Les tests rapides utilisent une base SQLite en mémoire dédiée aux tests ; elle n'est pas la base de développement ou de production.
+### Organisation du backend
+
+Le projet Django se trouve dans `backend/`. `clubsite/` contient les paramètres, les routes racine de l'API et les points d'entrée ASGI/WSGI. Les applications Django sont séparées par domaine ; chacune regroupe ses modèles, sérialiseurs, vues, routes et migrations :
+
+- `apps.members` : comptes, profils, demandes d'adhésion, rôles, capacités, journal d'audit et tableaux de bord.
+- `apps.projects` : projets, équipes, jalons, tâches et livrables associés.
+- `apps.events` : événements, inscriptions et suivi des présences.
+- `apps.announcements` : annonces et notifications destinées aux utilisateurs.
+
+### Organisation du frontend
+
+Le client React se trouve dans `frontend/src/`. `App.jsx` assemble les routes et la mise en page ; `pages/` contient les écrans par fonctionnalité et `components/` les éléments partagés. `context/AuthContext.jsx` gère l'état de session et les capacités de l'utilisateur, tandis que `services/api.js` centralise les appels HTTP. Les tests Vitest et React Testing Library sont dans `src/__tests__/`.
+
+### Rôles et permissions
+
+Les migrations initialisent huit rôles métier et leurs capacités. L'API vérifie les permissions côté serveur ; les contrôles du frontend servent à adapter l'affichage et la navigation. La matrice ci-dessous résume les capacités actuellement attribuées dans le code. Elle reste provisoire jusqu'à validation avec le cahier des charges du Club DIA.
+
+| Rôle | Capacités principales actuellement attribuées |
+| --- | --- |
+| `visitor` — Visiteur | Consulter les événements autorisés. |
+| `member` — Membre | Consulter et proposer des projets, consulter les événements et les annonces membres. |
+| `club_admin` — Administrateur du club | Toutes les capacités définies : membres et adhésions, rôles, projets, événements, annonces, audit et indicateurs. |
+| `project_lead` — Chef de projet | Consulter et proposer des projets, gérer l'équipe et les tâches, examiner les livrables attribués. |
+| `president` — Président du club | Consulter projets, événements et annonces membres, consulter l'audit et les indicateurs globaux. |
+| `event_manager` — Responsable des événements | Consulter et gérer les événements attribués, suivre les présences et consulter les annonces membres. |
+| `pedagogical_supervisor` — Encadrant pédagogique | Consulter les projets autorisés et examiner les livrables attribués. |
+| `communications_manager` — Responsable de la communication | Consulter et gérer les annonces. |
+
+### Fonctionnalités principales
+
+- Authentification par JWT, inscription et demandes d'adhésion, connexion/déconnexion, renouvellement de session, réinitialisation du mot de passe et gestion du profil.
+- Gestion des membres, examen des demandes d'adhésion et attribution contrôlée des rôles métier.
+- Suivi des projets et de leurs équipes, jalons, tâches, livrables et fichiers privés.
+- Publication d'événements, inscriptions et gestion des présences.
+- Publication d'annonces selon leur audience, notifications et tableaux de bord adaptés aux permissions.
+- Journalisation des actions sensibles et exports CSV des membres et des participants aux événements via l'API.
 
 ## Prérequis
 
@@ -87,6 +119,14 @@ python manage.py migrate_from_mongodb --apply --confirm-legacy-admin-mapping
 
 Les ObjectId sont conservés dans `legacy_id` et les mots de passe PBKDF2 reconnus par Django gardent leur hash. L'import ne se connecte pas à MongoDB et n'écrase pas les lignes cible : une ligne historique existante doit correspondre au snapshot, sinon la transaction est annulée. Les relations manquantes sont ajoutées sans remplacer les associations existantes. Les données source et l'archive ne sont jamais supprimées. Vérifiez les comptes, rôles, relations et nombres migrés avant toute décision de retrait de MongoDB.
 
+Les sauvegardes locales de `backend/backups/` sont ignorées par Git et doivent être conservées jusqu'à la fin de la migration. Le rapport de livraison du 4 novembre 2026 consignait l'archive `mongodb-20261104T213013Z.json.gz` (2 104 octets, SHA-256 `865ee412731c4baeefcfb8b9c33a001e7f0f68ecd223d6381110d0cb90cd9bf8`) avec 14 membres, 14 e-mails uniques, 14 hashes PBKDF2 reconnus et une répartition historique de 5 comptes `admin` et 9 `member`. Il consignait aussi un dump BSON de 16 collections et 27 documents. Ces chiffres sont historiques et n'ont pas été revérifiés pendant le nettoyage ; ils ne prouvent pas l'état actuel des archives ni qu'un import PostgreSQL a eu lieu. Revalidez le snapshot et la cible avant `--apply`.
+
+## Authentification et session
+
+Les endpoints d'authentification sont versionnés sous `/api/v1/auth/` : `signup`, `login`, `refresh`, `logout`, `me`, `password/change`, `password/reset` et `password/reset/confirm`. L'inscription crée une demande d'adhésion ; la réinitialisation par e-mail nécessite un relais SMTP réellement configuré.
+
+Le frontend conserve les jetons JWT dans `sessionStorage`, renouvelle l'access token après une réponse `401` et efface la session après expiration ou échec du refresh. Les autorisations sont toujours vérifiées côté API. Le smoke test optionnel `frontend/test_login.js` lit `MYCLUB_TEST_EMAIL` et `MYCLUB_TEST_PASSWORD` depuis l'environnement, n'affiche pas les jetons et doit être utilisé uniquement avec un compte de test.
+
 ## Sauvegarde PostgreSQL
 
 Exemple de sauvegarde personnalisée :
@@ -116,6 +156,8 @@ python manage.py test --settings=clubsite.test_settings
 
 Pour valider PostgreSQL, configurez `backend/.env` vers une base de test PostgreSQL dédiée puis exécutez les mêmes commandes sans `--settings=clubsite.test_settings`.
 
+Les tests backend couvrent les huit rôles seedés, les refus d'accès, les workflows projet, les liens entre projets/tâches/jalons et l'import d'une archive MongoDB. La base SQLite en mémoire valide les tests unitaires, mais ne remplace pas les tests d'intégration PostgreSQL. Les tests frontend Vitest couvrent notamment l'inscription, les membres, les événements et les projets.
+
 Depuis `frontend/` :
 
 ```powershell
@@ -135,6 +177,6 @@ npm audit
 - Collectez les fichiers statiques avec `python manage.py collectstatic` et servez `STATIC_ROOT` par le serveur de déploiement.
 - Les fichiers de projet sont privés et doivent être servis par leur endpoint authentifié, pas par un répertoire public.
 
-## État et décisions de club
+## Décisions métier à confirmer
 
-Le rapport de livraison historique est dans [docs/ETAT_DE_LIVRAISON.md](docs/ETAT_DE_LIVRAISON.md); son addendum et [l'audit du 19 novembre 2026](docs/AUDIT_TECHNIQUE_2026-11-19.md) donnent l'état actuel. Les règles finales d'admission, le cahier des huit rôles, la politique de publication, le mapping des comptes historiques et les coordonnées officielles du club restent à confirmer par ses responsables.
+La matrice des huit rôles présentée ci-dessus décrit le code actuel et reste provisoire jusqu'à comparaison avec le cahier des charges du Club DIA. Les règles finales d'admission, la politique de publication, le mapping des comptes historiques et les coordonnées officielles du club restent à confirmer par ses responsables.
